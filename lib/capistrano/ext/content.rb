@@ -12,6 +12,34 @@ Capistrano::Configuration.instance(:must_exist).load do
       run commands
     end
 
+    desc 'Import content'
+    task :import, :roles => :app do
+      transaction do
+        tmp_file = random_tmp_file
+        on_rollback { run "rm -f #{tmp_file}" }
+        backup
+        write File.read(arguments), tmp_file
+        run <<-CMD
+          cd #{fetch :shared_content_path} &&
+          tar xf #{tmp_file} &&
+          rm -f #{tmp_file}
+        CMD
+      end
+    end
+
+    desc 'Export content'
+    task :export, :roles => :app do
+      tmp_file = "#{random_tmp_file}.tar.gz"
+      on_rollback { run "rm -f #{fetch :latest_content_backup}" }
+      on_rollback { run_locally "rm -f #{tmp_file}" }
+      transaction do
+        backup
+        download fetch(:latest_content_backup), tmp_file
+        logger.important "The content folder has been downloaded to #{tmp_file}"
+      end
+    end
+
+
     desc '[internal] backup content folders'
     task :backup, :roles => :app do
       set :latest_content_backup,
@@ -45,21 +73,6 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
 
       run commands
-    end
-
-    desc 'Import content'
-    task :import, :roles => :app do
-      transaction do
-        tmp_file = random_tmp_file
-        on_rollback { run "rm -f #{tmp_file}" }
-        backup
-        write File.read(arguments), tmp_file
-        run <<-CMD
-          cd #{fetch :shared_content_path} &&
-          tar xf #{tmp_file} &&
-          rm -f #{tmp_file}
-        CMD
-      end
     end
 
     desc '[internal] Cleanup the content folder'
