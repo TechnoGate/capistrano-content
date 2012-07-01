@@ -14,9 +14,10 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc 'Import content'
     task :import, :roles => :app do
+      tmp_file = random_tmp_file
+      on_rollback { run "rm -f #{tmp_file}" }
+
       transaction do
-        tmp_file = random_tmp_file
-        on_rollback { run "rm -f #{tmp_file}" }
         backup
         write File.read(arguments), tmp_file
         run <<-CMD
@@ -24,6 +25,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           tar xf #{tmp_file} &&
           rm -f #{tmp_file}
         CMD
+        clean
       end
     end
 
@@ -32,6 +34,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       tmp_file = "#{random_tmp_file}.tar.gz"
       on_rollback { run "rm -f #{fetch :latest_content_backup}" }
       on_rollback { run_locally "rm -f #{tmp_file}" }
+
       transaction do
         backup
         download fetch(:latest_content_backup), tmp_file
@@ -46,10 +49,14 @@ Capistrano::Configuration.instance(:must_exist).load do
         "#{fetch :backup_path, "#{fetch :deploy_to}/backups"}/#{fetch :application}_shared_contents_#{Time.now.strftime('%d-%m-%Y_%H-%M-%S')}.tar.gz"
       on_rollback { run "rm -f #{fetch :latest_content_backup}" }
 
-      run <<-CMD
-        cd #{fetch :shared_content_path} &&
-        tar chzf #{fetch :latest_content_backup} --exclude='*~' --exclude='*.tmp' --exclude='*.bak' *
-      CMD
+      transaction do
+        clean
+
+        run <<-CMD
+          cd #{fetch :shared_content_path} &&
+          tar chzf #{fetch :latest_content_backup} *
+        CMD
+      end
     end
 
     desc '[internal] Link content folders'
