@@ -5,7 +5,7 @@ Gem::Specification.new do |gem|
   gem.email         = ['wael.nasreddine@gmail.com']
   gem.description   = 'Capistrano recipes for content managment'
   gem.summary       = gem.summary
-  gem.homepage      = 'http://technogate.github.com/content'
+  gem.homepage      = 'http://technogate.github.com/contao'
   gem.required_ruby_version = Gem::Requirement.new('>= 1.9.2')
 
   gem.files         = `git ls-files`.split($\)
