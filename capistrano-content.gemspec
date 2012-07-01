@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = 'capistrano-content'
   gem.require_paths = ['lib']
-  gem.version       = '0.0.5'
+  gem.version       = '0.0.6'
 
   # Runtime dependencies
   gem.add_dependency 'rake'
