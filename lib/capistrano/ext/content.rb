@@ -77,12 +77,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc '[internal] Cleanup the content folder'
     task :clean, :roles => :app do
-      find_params = ["-name '._*'", "-name '*~'", "-name '*.tmp'", "-name '*.bak'"]
-      commands = find_params.inject '' do |commands, find_param|
-        commands << "#{try_sudo} find #{fetch :shared_content_path} #{find_param} -exec rm -f {} ';';"
-      end
-
-      run commands
+      clean_folder fetch(:shared_content_path)
     end
   end
 
