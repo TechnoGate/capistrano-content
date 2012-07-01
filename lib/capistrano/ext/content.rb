@@ -19,7 +19,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       transaction do
         backup
-        write File.read(arguments), tmp_file
+        write File.read(arguments.first), tmp_file
         run <<-CMD
           cd #{fetch :shared_content_path} &&
           tar xf #{tmp_file} &&
@@ -31,7 +31,8 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc 'Export content'
     task :export, :roles => :app do
-      tmp_file = "#{random_tmp_file}.tar.gz"
+      tmp_file = "#{arguments(false).first || random_tmp_file}"
+      tmp_file << '.tar.gz' unless tmp_file =~ /\.tar\.gz$/
       on_rollback { run "rm -f #{fetch :latest_content_backup}" }
       on_rollback { run_locally "rm -f #{tmp_file}" }
 
